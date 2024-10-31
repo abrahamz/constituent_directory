@@ -30,5 +30,5 @@ export class Constituent extends BaseEntity {
    postalCode?: string;
 
    @ManyToOne(() => User)
-   belongsTo!: User;
+   belongsTo?: User;
 }

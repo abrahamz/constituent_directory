@@ -1,8 +1,9 @@
 import express from 'express'
 import { MikroORM } from '@mikro-orm/postgresql';
 
-import indexRouter from './routes/index.js'
-import usersRouter from './routes/users.js'
+import indexRouter from './routes/index.js';
+import usersRouter from './routes/users.js';
+import constituentRouter from './routes/constituents.js';
 import config from './mikro-orm.config.js';
 
 const app = express();
@@ -13,12 +14,15 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/constituents', constituentRouter);
 
 // commenting out until db entities exist
 // connection can be tested using npx mikro-orm-esm debug
 const orm = await MikroORM.init(config);
 
 await orm.schema.refreshDatabase();
+
+export const em = orm.em.fork();
 
 app.listen(port, () => {
   // Log a message when the server is successfully running

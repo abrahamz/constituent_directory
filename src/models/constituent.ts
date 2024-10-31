@@ -29,6 +29,6 @@ export class Constituent extends BaseEntity {
    @Property()
    postalCode?: string;
 
-   @ManyToOne(() => User)
+   @ManyToOne(() => User, { nullable: true })
    belongsTo?: User;
 }

@@ -1,10 +1,13 @@
 import express, { Request, Response, NextFunction } from 'express';
 import { wrap } from '@mikro-orm/postgresql';
+import multer from 'multer';
+import { AsyncParser } from '@json2csv/node';
 
 import { em } from '../app.js';
 import { Constituent, User } from '../models/index.js';
 
 const router = express.Router();
+const upload = multer({ storage: multer.memoryStorage() });
 
 /* GET all Constituents */
 router.get('/', async function(req: Request, res: Response, next: NextFunction) {
@@ -63,6 +66,92 @@ router.patch('/:id', async function(req: Request, res: Response, next: NextFunct
   } catch (e: any) {
     res.status(400).json({ message: e.message, stack: e.stack });
   }
+});
+
+/* Bulk Upload Consituents */
+router.post('/bulk', upload.single('csvFile'), async function(req: Request, res: Response) {
+  if (!req.file) {
+    res.status(400).json({ message: "error bulk uploading file"});
+    return;
+  }
+
+  try {
+    const rawData = String(req.file?.buffer);
+    const rawDataArray = rawData.split(/\r?\n/);
+
+    for (const data of rawDataArray) {
+      const dataArray = data.split(',');
+
+      if (!dataArray[0] || !dataArray[1]) {
+        //TODO: add ability to return records that fail validation;
+        continue;
+      }
+
+      const constituent = new Constituent();
+      constituent.firstName = dataArray[0];
+      constituent.lastName = dataArray[1];
+      constituent.email = dataArray[2];
+      constituent.street = dataArray[3];
+      constituent.address2 = dataArray[4];
+      constituent.city = dataArray[5];
+      constituent.state = dataArray[6];
+      constituent.postalCode = dataArray[7];
+
+      em.persist(constituent);
+    };
+
+    await em.flush();
+    res.send("Successful upload");
+  } catch (e: any) {
+    res.status(400).json({ message: "error bulk uploading file", errorMessage: e.message });
+  }
+})
+
+/* Download CSV of Constituents */
+router.get('/download', async function(req: Request, res: Response){
+  const fields = [
+    {
+      label: 'First Name',
+      value: 'firstName'
+    },
+    {
+      label: 'Last Name',
+      value: 'lastName'
+    },
+    {
+      label: 'Email',
+      value: 'email'
+    },
+    {
+      label: 'Street',
+      value: 'street'
+    },
+    {
+      label: 'Address 2',
+      value: 'address2'
+    },
+    {
+      label: 'City',
+      value: 'city'
+    },
+    {
+      label: 'State',
+      value: 'state'
+    },
+    {
+      label: 'Postal Code',
+      value: 'postalCode'
+    }
+  ]
+  const parser = new AsyncParser({fields});
+
+  const constituents = await em.findAll(Constituent);
+
+  const csv = await parser.parse(constituents).promise();
+
+  res.header('Content-Type', 'text/csv');
+  res.attachment('constituents.csv');
+  res.send(csv);
 });
 
 /* GET Constituent by id */

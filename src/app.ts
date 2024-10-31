@@ -16,7 +16,9 @@ app.use('/users', usersRouter);
 
 // commenting out until db entities exist
 // connection can be tested using npx mikro-orm-esm debug
-// const orm = await MikroORM.init(config);
+const orm = await MikroORM.init(config);
+
+await orm.schema.refreshDatabase();
 
 app.listen(port, () => {
   // Log a message when the server is successfully running

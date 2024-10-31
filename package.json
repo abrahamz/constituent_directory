@@ -3,13 +3,18 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node --no-warnings=ExperimentalWarning --loader ts-node/esm dist/app.js"
+    "start": "npx tsc && node --no-warnings=ExperimentalWarning --loader ts-node/esm dist/app.js"
   },
+  "type": "module",
   "dependencies": {
+    "@mikro-orm/core": "^6.3.13",
+    "@mikro-orm/postgresql": "^6.3.13",
+    "@mikro-orm/reflection": "^6.3.13",
     "debug": "~2.6.9",
     "express": "~4.16.1"
   },
   "devDependencies": {
+    "@mikro-orm/cli": "^6.3.13",
     "@types/express": "^5.0.0",
     "@types/node": "^22.8.5",
     "ts-node": "^10.9.2",

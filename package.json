@@ -14,7 +14,8 @@
     "@types/multer": "^1.4.12",
     "debug": "~2.6.9",
     "express": "~4.16.1",
-    "multer": "^1.4.5-lts.1"
+    "multer": "^1.4.5-lts.1",
+    "winston": "^3.15.0"
   },
   "devDependencies": {
     "@mikro-orm/cli": "^6.3.13",

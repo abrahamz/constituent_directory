@@ -5,6 +5,7 @@ import { AsyncParser } from '@json2csv/node';
 
 import { em } from '../app.js';
 import { Constituent, User } from '../models/index.js';
+import { logger } from '../services/logger.js';
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -32,7 +33,7 @@ router.post('/', async function(req: Request, res: Response, next: NextFunction)
     const constituent = new Constituent();
     constituent.firstName = req.body.firstName;
     constituent.lastName = req.body.lastName;
-    constituent.email = req.body.email;
+    constituent.email = req.body.email || null;
     constituent.street = req.body.street;
     constituent.address2 = req.body.address2;
     constituent.city = req.body.city;
@@ -44,7 +45,8 @@ router.post('/', async function(req: Request, res: Response, next: NextFunction)
   
     res.json(constituent);
   } catch (e: any) {
-    res.status(400).json({ message: e.message, stack: e.stack });
+    logger.error(`error creating constituent: ${e.message}`);
+    res.status(400).json({ message: "Error Creating Constituent, Please try again later" });
   }
 });
 
@@ -63,11 +65,12 @@ router.patch('/:id', async function(req: Request, res: Response, next: NextFunct
       res.send(constituent);
     }
   } catch (e: any) {
-    res.status(400).json({ message: e.message, stack: e.stack });
+    logger.error(`error updating constituent: ${e.message}`);
+    res.status(400).json({ message: "Error Updating Constituent, Please try again later" });
   }
 });
 
-/* Bulk Upload Consituents */
+/* Bulk Upload Constituents */
 router.post('/bulk', upload.single('csvFile'), async function(req: Request, res: Response) {
   if (!req.file) {
     res.status(400).json({ message: "error bulk uploading file"});
@@ -82,7 +85,7 @@ router.post('/bulk', upload.single('csvFile'), async function(req: Request, res:
     for (const data of rawDataArray) {
       const dataArray = data.split(',');
 
-      if (!dataArray[0] || !dataArray[1]) {
+      if (!dataArray[0] || !dataArray[1] ||!dataArray[2]) {
         //TODO: add ability to return records that fail validation;
         continue;
       }
@@ -103,7 +106,8 @@ router.post('/bulk', upload.single('csvFile'), async function(req: Request, res:
     await em.upsertMany(constituentArray);
     res.send("Successful upload");
   } catch (e: any) {
-    res.status(400).json({ message: "error bulk uploading file", errorMessage: e.message });
+    logger.error(`error bulk creating constituent: ${e.message}`);
+    res.status(400).json({ message: "error bulk uploading file" });
   }
 })
 
@@ -166,6 +170,7 @@ router.get('/:id', async function(req: Request, res: Response, next: NextFunctio
   const constituent = await em.findOne(Constituent, parseInt(req.params.id));
 
   if (constituent === null) {
+    logger.error(`error retrieving constituent with id: ${id}`);
     res.status(404).json({message: `constituent not found with id: ${req.params.id}`});
     return;
   }

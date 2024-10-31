@@ -3,6 +3,7 @@ import { wrap } from '@mikro-orm/postgresql';
 
 import { em } from '../app.js';
 import { User } from '../models/user.js';
+import { logger } from '../services/logger.js';
 
 const router = express.Router();
 
@@ -27,7 +28,8 @@ router.post('/', async function(req: Request, res: Response, next: NextFunction)
   
     res.json(user);
   } catch (e: any) {
-    res.status(400).json({ message: e.message, stack: e.stack });
+    logger.error(`error creating user: ${e.message}`);
+    res.status(400).json({ message: "Error Creating User, Please try again later" });
   }
 });
 
@@ -46,7 +48,8 @@ router.patch('/:id', async function(req: Request, res: Response, next: NextFunct
       res.send(user);
     }
   } catch (e: any) {
-    res.status(400).json({ message: e.message, stack: e.stack });
+    logger.error(`error updating user: ${e.message}`);
+    res.status(400).json({ message: "Error Updating User, Please try again later" });
   }
 });
 
@@ -62,6 +65,7 @@ router.get('/:id', async function(req: Request, res: Response, next: NextFunctio
   const user = await em.findOne(User, parseInt(req.params.id));
 
   if (user === null) {
+    logger.error(`error retrieving user with id: ${id}`);
     res.status(404).json({message: `user not found with id: ${req.params.id}`});
     return;
   }

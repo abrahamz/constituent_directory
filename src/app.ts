@@ -16,8 +16,6 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/constituents', constituentRouter);
 
-// commenting out until db entities exist
-// connection can be tested using npx mikro-orm-esm debug
 const orm = await MikroORM.init(config);
 
 await orm.schema.refreshDatabase();

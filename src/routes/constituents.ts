@@ -40,8 +40,7 @@ router.post('/', async function(req: Request, res: Response, next: NextFunction)
     constituent.postalCode = req.body.postalCode;
     constituent.belongsTo = user || undefined;
 
-    em.persist(constituent);
-    await em.flush();
+    await em.upsert(constituent);
   
     res.json(constituent);
   } catch (e: any) {
@@ -78,6 +77,7 @@ router.post('/bulk', upload.single('csvFile'), async function(req: Request, res:
   try {
     const rawData = String(req.file?.buffer);
     const rawDataArray = rawData.split(/\r?\n/);
+    let constituentArray: Constituent[] = [];
 
     for (const data of rawDataArray) {
       const dataArray = data.split(',');
@@ -97,10 +97,10 @@ router.post('/bulk', upload.single('csvFile'), async function(req: Request, res:
       constituent.state = dataArray[6];
       constituent.postalCode = dataArray[7];
 
-      em.persist(constituent);
+      constituentArray.push(constituent)
     };
 
-    await em.flush();
+    await em.upsertMany(constituentArray);
     res.send("Successful upload");
   } catch (e: any) {
     res.status(400).json({ message: "error bulk uploading file", errorMessage: e.message });

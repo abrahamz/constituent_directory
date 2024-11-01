@@ -1,13 +1,16 @@
 import express from 'express'
 import { MikroORM } from '@mikro-orm/postgresql';
+import dotenv from 'dotenv';
 
 import indexRouter from './routes/index.js';
 import usersRouter from './routes/users.js';
 import constituentRouter from './routes/constituents.js';
 import config from './mikro-orm.config.js';
 
+dotenv.config();
+
 const app = express();
-const port = 3000;
+const port = process.env.PORT;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

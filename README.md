@@ -30,6 +30,10 @@ At this point every time the code is run the database will be refreshed to an em
 | POST | localhost:3000/constituents/bulk | upload a CSV file to create constituent in bulk |
 | GET | localhost:3000/constituents/download | download a CSV file of all of the constituents |
 
-## Bulk Upload
+### Bulk Upload
 
 Bulk creation of Constituents can be done via uploading a CSV file to the localhost:3000/constituents/bulk endpoint. An example of the file can be found here: ./constituent.csv.
+
+### Logging
+
+Logs can be found here for dev logs: ./dev.log and exception logs: ./exceptions.log

@@ -1,27 +1,30 @@
 import express, { Request, Response, NextFunction } from 'express';
 import { wrap } from '@mikro-orm/postgresql';
+import bcrypt from 'bcrypt';
 
 import { em } from '../app.js';
-import { User } from '../models/user.js';
+import { User } from '../models/index.js';
 import { logger } from '../services/logger.js';
+import { authenticateToken } from '../middleware/authentication.js';
 
 const router = express.Router();
+const saltRounds = process.env.SALT_ROUNDS || "10";
 
 /* GET all Users */
-router.get('/', async function(req: Request, res: Response, next: NextFunction) {
+router.get('/', authenticateToken, async function(req: Request, res: Response, next: NextFunction) {
   const users = await em.findAll(User);
 
   res.send(users);
 });
 
 /* Create User */
-router.post('/', async function(req: Request, res: Response, next: NextFunction) {
+router.post('/', authenticateToken, async function(req: Request, res: Response, next: NextFunction) {
   try {
     const user = new User();
     user.firstName = req.body.firstName;
     user.lastName = req.body.lastName;
     user.email = req.body.email;
-    user.password = req.body.password;
+    user.password = await bcrypt.hash(req.body.password, parseInt(saltRounds));
 
     em.persist(user);
     await em.flush();
@@ -34,7 +37,7 @@ router.post('/', async function(req: Request, res: Response, next: NextFunction)
 });
 
 /* Update User */
-router.patch('/:id', async function(req: Request, res: Response, next: NextFunction) {
+router.patch('/:id', authenticateToken, async function(req: Request, res: Response, next: NextFunction) {
   try {
     const user = await em.findOne(User, parseInt(req.params.id));
     
@@ -54,7 +57,7 @@ router.patch('/:id', async function(req: Request, res: Response, next: NextFunct
 });
 
 /* GET User by id */
-router.get('/:id', async function(req: Request, res: Response, next: NextFunction) {
+router.get('/:id', authenticateToken, async function(req: Request, res: Response, next: NextFunction) {
   const id = parseInt(req.params.id);
 
   if (Number.isNaN(id)) {

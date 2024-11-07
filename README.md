@@ -11,10 +11,12 @@ npm install
 
 create ./.env file and copy contents of ./.env.example into it
 
+npm run build
+npm run migrate
+npm run seed
+
 npm start
 
-** WARNING **
-At this point every time the code is run the database will be refreshed to an empty state
 
 # Endpoints
 

@@ -1,5 +1,6 @@
 import { Options, PostgreSqlDriver } from '@mikro-orm/postgresql';
 import { TsMorphMetadataProvider } from '@mikro-orm/reflection';
+import { SeedManager } from '@mikro-orm/seeder';
 
 import { User, Constituent } from './models/index.js';
 
@@ -14,6 +15,15 @@ const config: Options = {
   metadataProvider: TsMorphMetadataProvider,
   // enable debug mode to log SQL queries and discovery information
   debug: true,
+  extensions: [SeedManager],
+  seeder: {
+    path: '../dist/seeders',
+    pathTs: './seeders',
+    defaultSeeder: 'DatabaseSeeder',
+    glob: '!(*.d).{js,ts}',
+    emit: 'ts',
+    fileName: (className: string) => className
+  }
 };
 
 export default config;

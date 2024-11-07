@@ -3,6 +3,7 @@ import { BaseEntity } from './baseModel.js';
 import { User } from './user.js';
 
 @Entity()
+@Filter({ name: 'electedOfficial', cond: args => ({ belongsTo: { id: args.belongsToId } }) })
 export class Constituent extends BaseEntity {
    @Property()
    firstName!: string;

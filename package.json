@@ -3,12 +3,16 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "npx tsc && node --no-warnings=ExperimentalWarning --loader ts-node/esm dist/app.js"
+    "build": "npx tsc",
+    "start": "npx tsc && node --no-warnings=ExperimentalWarning --loader ts-node/esm dist/app.js",
+    "migrate": "npx mikro-orm-esm migration:up",
+    "seed": "npx mikro-orm-esm seeder:run"
   },
   "type": "module",
   "dependencies": {
     "@json2csv/node": "^7.0.6",
     "@mikro-orm/core": "^6.3.13",
+    "@mikro-orm/migrations": "^6.3.13",
     "@mikro-orm/postgresql": "^6.3.13",
     "@mikro-orm/reflection": "^6.3.13",
     "@mikro-orm/seeder": "^6.3.13",

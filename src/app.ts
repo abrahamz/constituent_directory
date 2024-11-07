@@ -6,7 +6,6 @@ import indexRouter from './routes/index.js';
 import usersRouter from './routes/users.js';
 import constituentRouter from './routes/constituents.js';
 import config from './mikro-orm.config.js';
-import { DatabaseSeeder } from './seeders/DatabaseSeeder.js';
 
 dotenv.config();
 
@@ -22,12 +21,7 @@ app.use('/constituents', constituentRouter);
 
 const orm = await MikroORM.init(config);
 
-await orm.schema.refreshDatabase();
-
 export const em = orm.em.fork();
-
-await orm.getSeeder().seed(DatabaseSeeder);
-
 
 app.listen(port, () => {
   // Log a message when the server is successfully running

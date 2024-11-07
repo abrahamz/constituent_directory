@@ -6,19 +6,20 @@ import { AsyncParser } from '@json2csv/node';
 import { em } from '../app.js';
 import { Constituent, User } from '../models/index.js';
 import { logger } from '../services/logger.js';
+import { authenticateToken } from '../middleware/authentication.js';
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
 /* GET all Constituents */
-router.get('/', async function(req: Request, res: Response, next: NextFunction) {
+router.get('/', authenticateToken, async function(req: Request, res: Response, next: NextFunction) {
   const constituents = await em.findAll(Constituent);
 
   res.send(constituents);
 });
 
 /* Create Constituent */
-router.post('/', async function(req: Request, res: Response, next: NextFunction) {
+router.post('/', authenticateToken, async function(req: Request, res: Response, next: NextFunction) {
   try {
     const belongsToId = parseInt(req.body.belongsTo)
 
@@ -51,7 +52,7 @@ router.post('/', async function(req: Request, res: Response, next: NextFunction)
 });
 
 /* Update Constituent */
-router.patch('/:id', async function(req: Request, res: Response, next: NextFunction) {
+router.patch('/:id', authenticateToken, async function(req: Request, res: Response, next: NextFunction) {
   try {
     const constituent = await em.findOne(Constituent, parseInt(req.params.id));
     
@@ -71,7 +72,7 @@ router.patch('/:id', async function(req: Request, res: Response, next: NextFunct
 });
 
 /* Bulk Upload Constituents */
-router.post('/bulk', upload.single('csvFile'), async function(req: Request, res: Response) {
+router.post('/bulk', authenticateToken, upload.single('csvFile'), async function(req: Request, res: Response) {
   if (!req.file) {
     res.status(400).json({ message: "error bulk uploading file"});
     return;
@@ -112,7 +113,7 @@ router.post('/bulk', upload.single('csvFile'), async function(req: Request, res:
 })
 
 /* Download CSV of Constituents */
-router.get('/download', async function(req: Request, res: Response){
+router.get('/download', authenticateToken, async function(req: Request, res: Response){
   const fields = [
     {
       label: 'First Name',
@@ -159,7 +160,7 @@ router.get('/download', async function(req: Request, res: Response){
 });
 
 /* GET Constituent by id */
-router.get('/:id', async function(req: Request, res: Response, next: NextFunction) {
+router.get('/:id', authenticateToken, async function(req: Request, res: Response, next: NextFunction) {
   const id = parseInt(req.params.id);
 
   if (Number.isNaN(id)) {

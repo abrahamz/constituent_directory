@@ -18,6 +18,17 @@ router.get('/', authenticateToken, async function(req: Request, res: Response, n
   res.send(constituents);
 });
 
+/* GET all Constituents */
+router.get('/find/:id', authenticateToken, async function(req: Request, res: Response, next: NextFunction) {
+  const id = parseInt(req.params.id);
+
+  const constituents = await em.find(Constituent, {}, {
+    filters: { electedOfficial: { belongsToId: id } }
+  })
+
+  res.send(constituents);
+});
+
 /* Create Constituent */
 router.post('/', authenticateToken, async function(req: Request, res: Response, next: NextFunction) {
   try {

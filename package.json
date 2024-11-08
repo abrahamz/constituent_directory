@@ -18,6 +18,7 @@
     "@mikro-orm/seeder": "^6.3.13",
     "@types/multer": "^1.4.12",
     "bcrypt": "^5.1.1",
+    "class-validator": "^0.14.1",
     "debug": "~2.6.9",
     "dotenv": "^16.4.5",
     "express": "~4.21.1",

@@ -2,6 +2,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import { wrap } from '@mikro-orm/postgresql';
 import multer from 'multer';
 import { AsyncParser } from '@json2csv/node';
+import { validate } from 'class-validator';
 
 import { em } from '../app.js';
 import { Constituent, User } from '../models/index.js';
@@ -34,13 +35,17 @@ router.post('/', authenticateToken, async function(req: Request, res: Response, 
   try {
     const belongsToId = parseInt(req.body.belongsTo)
 
-    console.log(belongsToId)
     if (Number.isNaN(belongsToId)) {
       res.status(400).json({ message: 'please pass a valid id for belongsTo'})
       return;
     }
 
     const user = await em.findOne(User, belongsToId);
+
+    if (!user) {
+      res.status(400).json({ message: 'invalid id for belongsTo'})
+      return;
+    }
 
     const constituent = new Constituent();
     constituent.firstName = req.body.firstName;
@@ -51,7 +56,15 @@ router.post('/', authenticateToken, async function(req: Request, res: Response, 
     constituent.city = req.body.city;
     constituent.state = req.body.state;
     constituent.postalCode = req.body.postalCode;
-    constituent.belongsTo = user || undefined;
+    constituent.belongsTo = user;
+
+    validate(constituent).then(errors => {
+      if (errors.length > 0) {
+        console.log('validation failed. errors: ', errors);
+        res.status(400).json({ message: "Error Creating User", errors });
+        return;
+      }
+    });
 
     await em.upsert(constituent);
   
@@ -89,6 +102,20 @@ router.post('/bulk', authenticateToken, upload.single('csvFile'), async function
     return;
   }
 
+  const belongsToId = parseInt(req.body.belongsTo)
+
+  if (Number.isNaN(belongsToId)) {
+    res.status(400).json({ message: 'please pass a valid id for belongsTo'})
+    return;
+  }
+
+  const user = await em.findOne(User, belongsToId);
+
+  if (!user) {
+    res.status(400).json({ message: 'invalid id for belongsTo'})
+    return;
+  }
+
   try {
     const rawData = String(req.file?.buffer);
     const rawDataArray = rawData.split(/\r?\n/);
@@ -96,11 +123,6 @@ router.post('/bulk', authenticateToken, upload.single('csvFile'), async function
 
     for (const data of rawDataArray) {
       const dataArray = data.split(',');
-
-      if (!dataArray[0] || !dataArray[1] ||!dataArray[2]) {
-        //TODO: add ability to return records that fail validation;
-        continue;
-      }
 
       const constituent = new Constituent();
       constituent.firstName = dataArray[0];
@@ -111,6 +133,14 @@ router.post('/bulk', authenticateToken, upload.single('csvFile'), async function
       constituent.city = dataArray[5];
       constituent.state = dataArray[6];
       constituent.postalCode = dataArray[7];
+      constituent.belongsTo = user;
+
+      const validateErrors = await validate(constituent)
+
+      if (validateErrors.length > 0) {
+        console.log('validation failed. errors: ', validateErrors);
+        continue;
+      }
 
       constituentArray.push(constituent)
     };

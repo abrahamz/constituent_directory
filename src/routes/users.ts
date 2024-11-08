@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import { wrap } from '@mikro-orm/postgresql';
 import bcrypt from 'bcrypt';
+import { validate } from 'class-validator';
 
 import { em } from '../app.js';
 import { User } from '../models/index.js';
@@ -24,7 +25,17 @@ router.post('/', authenticateToken, async function(req: Request, res: Response, 
     user.firstName = req.body.firstName;
     user.lastName = req.body.lastName;
     user.email = req.body.email;
-    user.password = await bcrypt.hash(req.body.password, parseInt(saltRounds));
+    user.password = req.body.password;
+
+    validate(user).then(errors => {
+      if (errors.length > 0) {
+        console.log('validation failed. errors: ', errors);
+        res.status(400).json({ message: "Error Creating User", errors });
+        return;
+      }
+    });
+
+    user.password = await bcrypt.hash(user.password, parseInt(saltRounds))
 
     em.persist(user);
     await em.flush();

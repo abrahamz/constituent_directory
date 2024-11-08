@@ -58,13 +58,13 @@ router.post('/', authenticateToken, async function(req: Request, res: Response, 
     constituent.postalCode = req.body.postalCode;
     constituent.belongsTo = user;
 
-    validate(constituent).then(errors => {
-      if (errors.length > 0) {
-        console.log('validation failed. errors: ', errors);
-        res.status(400).json({ message: "Error Creating User", errors });
-        return;
-      }
-    });
+    const validateErrors = await validate(constituent)
+
+    if (validateErrors.length > 0) {
+      console.log('validation failed. errors: ', validateErrors);
+      res.status(400).json({ message: "Error Creating User", validateErrors });
+      return;
+    }
 
     await em.upsert(constituent);
   
